@@ -1,0 +1,115 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="flickr-square.html">
+<dom-module id="flickr-selector">
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+    
+    .drop-place {
+      margin: auto;
+      @apply(--layout-horizontal);
+      @apply(--layout-wrap);
+      min-height: 160px;
+      background: var(--light-primary-color);
+      z-index: -1;
+    }
+    
+    flickr-square {
+      margin-bottom: 5px;
+      @apply(--layout-vertical);
+      @apply(--layout-center);
+      @apply(--layout-flex-1);
+    }
+    
+    .toolbar {
+      display: flex;
+      align-items: center;
+      background-color: var(--dark-primary-color);
+      color: var(--text-primary-color);
+      padding: 5px;
+      min-height: 40px;
+    }
+    
+    .toolbar .title {
+      flex: 1;
+      padding-left: 10px;
+      font-family: Roboto;
+    }
+    
+    .image-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      margin-left:4px;
+      margin-top:4px;
+    }
+    
+    .image-container .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: #FFF;
+    }
+    </style>
+    <div class="toolbar">
+      <div class="title">Glisser / Déposer les images flickr ci-dessous</div>
+    </div>
+    <div class="drop-place layout horizontal">
+      <template is="dom-repeat" items="{{images}}">
+        <div class="image-container">
+          <flickr-square id="{{item}}" flickrid="{{item}}" on-click="promote">
+          </flickr-square>
+          <paper-icon-button class="overlay" icon="delete" on-click="deleteMe"></paper-icon-button>
+        </div>
+      </template>
+    </div>
+  </template>
+  <script>
+  (function() {
+    'use strict';
+    Polymer({
+      is: 'flickr-selector',
+      properties: {
+        images: Array
+      },
+      listeners: {
+        'dragover': 'cancel',
+        'dragenter': 'cancel',
+        'drop': 'drop'
+      },
+      ready: function() {},
+      cancel: function(e) {
+        if (e.preventDefault) {
+          e.preventDefault();
+        } // required by FF + Safari
+        e.dataTransfer.dropEffect = 'copy'; // tells the browser what drop effect is allowed here
+        return false; // required by IE
+      },
+      drop: function(e) {
+        if (e.preventDefault) {
+          e.preventDefault();
+        }
+        var s = e.dataTransfer.getData('Text');
+        var re = /https:\/\/www.flickr.com\/photos\/([^\/]*)\/(\d*)/;
+        var flickrinfo = re.exec(s);
+        this.push('images', flickrinfo[2]);
+      },
+      deleteMe: function(e) {
+        let i = this.images.indexOf(e.model.item);
+        if (-1 < i) {
+          this.splice('images', i, 1);
+        }
+      },
+      promote: function(e) {
+        let i = this.images.indexOf(e.model.item);
+        if (-1 < i) {
+          this.splice('images', i, 1);
+        }
+        this.unshift('images', e.model.item);
+      }
+    });
+  })();
+  </script>
+</dom-module>

@@ -1,0 +1,186 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="../../bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../bower_components/firebase-element/firebase-collection.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<!--
+
+Left Nav + List + Detail
+
+ -->
+<dom-module id="x-app">
+  <link rel="import" type="css" href="x-app.css">
+  <template>
+    <style>
+    #itemsList {
+      @apply(--layout-flex);
+    }
+    
+    .item {
+      cursor: pointer;
+      padding: 16px 22px;
+      border-bottom: 1px solid #DDD;
+      @apply(--layout-flex);
+    }
+    
+    .item.selected {
+      background-color: var(--google-grey-300);
+      border-bottom: 1px solid #ccc;
+    }
+    
+    .title {
+      white-space: nowrap;
+      width: 90%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: bold;
+    }
+    
+    .container {
+      @apply(--layout-horizontal);
+    }
+    
+    .flexchild {
+      @apply(--layout-flex);
+    }
+    
+    .spacer {
+      @apply(--layout-flex);
+    }
+    
+    .imageplace {
+      margin: auto;
+      @apply(--layout-horizontal);
+      @apply(--layout-wrap);
+    }
+    
+    .img {
+      padding-right: 4px;
+      padding-bottom: 16px;
+    }
+    
+    a {
+      color: var(--secondary-text-color);
+    }
+    </style>
+    <firebase-collection id="datasrc" location="https://la-panacee.firebaseio.com/artworks" data="{{artworks}}"></firebase-collection>
+    <paper-drawer-panel id="navDrawerPanel" responsive-width="1280px">
+      <div class="nav" drawer>
+        <paper-toolbar id="drawerToolbar">
+          <span class="paper-font-title">La Panacée</span>
+        </paper-toolbar>
+      </div>
+      <paper-drawer-panel id="mainDrawerPanel" class="main-drawer-panel" main responsive-width="600px" drawer-width="[[_computeListWidth(_isMobile)]]" drawer-toggle-attribute="list-toggle" narrow="{{_isMobile}}">
+        <paper-header-panel class="list-panel" drawer>
+          <!-- List Toolbar -->
+          <paper-toolbar>
+            <paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
+          </paper-toolbar>
+          <!-- List -->
+          <iron-list id="itemsList" items="[[artworks]]" as="artwork" class="list" on-iron-activate="_listTap">
+            <template>
+              <div class="item" on-click='_show'>
+                <div><small>[[artwork.event]]</small></div>
+                <div class="title">
+                  [[artwork.title]]</div>
+                <div>[[artwork.artists]]</div>
+              </div>
+            </template>
+          </iron-list>
+        </paper-header-panel>
+        <paper-header-panel class="content-panel" main>
+          <!-- Main Toolbar -->
+          <paper-toolbar>
+            <paper-icon-button icon="arrow-back" list-toggle></paper-icon-button>
+          </paper-toolbar>
+          <!-- Main Content -->
+          <div class="content">
+            <div class="container">
+              <div class="headline flexchild">
+                <iron-icon icon="date-range"></iron-icon> [[selected.event]]</div>
+              <div class="container paper-font-title">
+                <template is="dom-repeat" items="[[selected.artists]]" as="item">
+                  <a on-click="author" artist={{item}}>
+                    <iron-icon icon="perm-identity"></iron-icon><span>{{item}}</span></a>&nbsp;
+                </template>
+              </div>
+            </div>
+            <div class="container">
+              <div class="paper-font-display1 flexchild">
+                <b style="font-size:200%;">[[selected.title]]</b></div>
+              <div class="paper-font-display1">[[selected.date]]</div>
+            </div>
+            <div class="container paper-font-menu">[[selected.description]]</div>
+            <template is="dom-repeat" items="[[selected.productions]]" as="item">
+              <div class="paper-font-caption">{{item}}</div>
+            </template>
+            <br/>
+            <div class="paper-font-body1" style="text-align:justify;" inner-h-t-m-l={{nl2br(selected.content)}}></div>
+            <br/>
+            <div class="imageplace">
+              <template is="dom-repeat" items="[[selected.flickrs]]" as="item">
+                <a href="https://www.flickr.com/photos/137685274@N02/{{item}}" target="_blank">
+                  <flickr-image class="img" flickrid="{{item}}" size=2></flickr-image>
+                </a>
+              </template>
+            </div>
+            <br/>
+            <template is="dom-repeat" items="[[selected.urls]]" as="item">
+              <div>
+                <iron-icon icon="link"></iron-icon><a target="_blank" href="{{item}}">{{item}}</a>
+              </div>
+            </template>
+          </div>
+        </paper-header-panel>
+      </paper-drawer-panel>
+    </paper-drawer-panel>
+  </template>
+  <script>
+  (function() {
+    'use strict';
+    Polymer({
+      is: 'x-app',
+      properties: {
+        selected: {
+          type: Object
+        },
+      },
+      ready: function() {
+        this.$.datasrc.query.on('child_added', this.artworkAdded);
+      },
+      _show: function(e) {
+        this.selected = e.model.artwork;
+      },
+      _computeListWidth: function(isMobile) {
+        // when in mobile screen size, make the list be 100% width to cover the whole screen
+        return isMobile ? '100%' : '33%';
+      },
+      nl2br: function(txt) {
+        return txt.replace(/(?:\r\n|\r|\n)/g, '<br />');
+      },
+      _listTap: function() {
+        this.$.mainDrawerPanel.closeDrawer();
+      },
+      artworkAdded: function() {
+        document.querySelector('iron-list').fire('iron-resize');
+      }
+    });
+  })();
+  </script>
+</dom-module>
