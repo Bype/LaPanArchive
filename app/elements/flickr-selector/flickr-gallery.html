@@ -1,0 +1,99 @@
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/neon-animation/neon-animations.html">
+<link rel="import" href="../../bower_components/iron-icons/image-icons.html">
+<link rel="import" href="flickr-image.html">
+<dom-module id="flickr-gallery">
+  <template>
+    <style>
+    .imageplace {
+      margin: auto;
+      @apply(--layout-horizontal);
+      @apply(--layout-wrap);
+    }
+
+    .img {
+      padding-right: 4px;
+      padding-bottom: 16px;
+    }
+
+    .lb {
+      margin: 0 0 0 0;
+      padding: 0 0 0 0;
+    }
+
+    #lightbox {
+      background-color: var(--paper-grey-900);
+      color: var(--paper-grey-100);
+      margin: 0 0 0 0;
+      padding: 0 0 0 0;
+    }
+
+    .overlay-left {
+      position: absolute;
+      top: 40%;
+      left: 0;
+      color: #FFF;
+      background-color: var(--paper-grey-900);
+      opacity: .5;
+    }
+
+    .overlay-right {
+      position: absolute;
+      top: 40%;
+      right: 0;
+      color: #FFF;
+      background-color: var(--paper-grey-900);
+      opacity: .5;
+    }
+    </style>
+    <paper-dialog id="lightbox" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
+      <flickr-image class="lb" flickrid="{{selected}}" url="{{url}}" size=8></flickr-image>
+      <iron-icon class="overlay-left" icon="image:navigate-before" on-click="_previous"></iron-icon>
+      <iron-icon class="overlay-right" icon="image:navigate-next" on-click="_next"></iron-icon>
+      <iron-ajax auto url="https://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=ca7454a3b5cac81a424bbd750f75131b&photo_id={{selected}}&format=json&nojsoncallback=1" handle-as="json" last-response="{{imageinfo}}"></iron-ajax>
+      <h3>{{imageinfo.photo.title._content}}</h3>
+      <p>{{imageinfo.photo.description._content}}</p>
+    </paper-dialog>
+    <div class="imageplace">
+      <template is="dom-repeat" items="{{imgs}}" as="item">
+        <flickr-image class="img" on-click="_clickImg" flickrid="{{item}}" size=1></flickr-image>
+      </template>
+    </div>
+  </template>
+  <script>
+  class FlickrGallery {
+    beforeRegister() {
+      this.is = 'flickr-gallery';
+      this.properties = {
+        imgs: Array,
+        selected: String,
+        imageinfo: Object,
+        url: {
+          type: String,
+          notify: true
+        }
+      };
+    }
+    ready() {
+
+    }
+    _clickImg(e) {
+      this.selected = e.model.item;
+      this.$.lightbox.open();
+    }
+    _next() {
+      let i = this.imgs.indexOf(this.selected);
+      i = (i + 1) % this.imgs.length;
+      this.selected = this.imgs[i];
+    }
+    _previous() {
+      let i = this.imgs.indexOf(this.selected);
+      if (0 == i)
+        i = this.imgs.length;
+      i = (i - 1) % this.imgs.length;
+      this.selected = this.imgs[i];
+    }
+  }
+  Polymer(FlickrGallery);
+  </script>
+</dom-module>

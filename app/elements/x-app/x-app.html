@@ -21,7 +21,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../../bower_components/firebase-element/firebase-collection.html">
 <link rel="import" href="../../bower_components/iron-list/iron-list.html">
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
-<link rel="import" href="../flickr-selector/flickr-image.html">
+<link rel="import" href="../flickr-selector/flickr-gallery.html">
 <!--
 
 Left Nav + List + Detail
@@ -107,16 +107,7 @@ Left Nav + List + Detail
       @apply(--layout-flex);
     }
 
-    .imageplace {
-      margin: auto;
-      @apply(--layout-horizontal);
-      @apply(--layout-wrap);
-    }
 
-    .img {
-      padding-right: 4px;
-      padding-bottom: 16px;
-    }
 
     a {
       color: var(--secondary-text-color);
@@ -176,13 +167,7 @@ Left Nav + List + Detail
           <br/>
           <div class="paper-font-body1" style="text-align:justify;" inner-h-t-m-l={{nl2br(selected.content)}}></div>
           <br/>
-          <div class="imageplace">
-            <template is="dom-repeat" items="[[selected.flickrs]]" as="item">
-              <a href="https://www.flickr.com/photos/137685274@N02/{{item}}" target="_blank">
-                <flickr-image class="img" flickrid="{{item}}" size=2></flickr-image>
-              </a>
-            </template>
-          </div>
+          <flickr-gallery imgs="[[selected.flickrs]]"></flickr-gallery>
           <br/>
           <template is="dom-repeat" items="[[selected.urls]]" as="item">
             <div>
