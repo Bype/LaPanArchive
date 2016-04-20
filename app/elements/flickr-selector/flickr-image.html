@@ -4,14 +4,15 @@
 <dom-module id="flickr-image">
   <template>
     <style>
-     :host, #img {
-      margin:0 0 0 0;
-      padding:0 0 0 0;
+    :host,
+    #img {
+      margin: 0 0 0 0;
+      padding: 0 0 0 0;
     }
     </style>
     <iron-ajax auto url="https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key={{apikey}}&photo_id={{flickrid}}&format=json&nojsoncallback=1" handle-as="json" last-response="{{imageinfo}}" on-response="loaded">
     </iron-ajax>
-    <iron-image id="img" src="{{url}}" sizing="cover" entry-animation="fade-in-animation" >
+    <iron-image id="img" src="{{url}}" sizing="cover" entry-animation="fade-in-animation">
   </template>
   <script>
   (function() {
@@ -36,6 +37,7 @@
           this.url = this.imageinfo.sizes.size[this.size].source;
           this.$.img.width = this.imageinfo.sizes.size[this.size].width;
           this.$.img.height = this.imageinfo.sizes.size[this.size].height;
+          this.fire('imgloaded');
         } else {
           this.url = 'http://placehold.it/320x320?text=Image+absente';
         }

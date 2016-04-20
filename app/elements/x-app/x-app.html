@@ -240,7 +240,7 @@ Left Nav + List + Detail
       return isMobile ? '100%' : '33%';
     }
     nl2br(txt) {
-      return txt.replace(/(?:\r\n|\r|\n)/g, '<br />');
+      return txt;//.replace(/(?:\r\n|\r|\n)/g, '<br />');
     }
     _listTap() {
       this.$.mainDrawerPanel.closeDrawer();
