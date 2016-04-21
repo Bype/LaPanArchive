@@ -107,8 +107,6 @@ Left Nav + List + Detail
       @apply(--layout-flex);
     }
 
-
-
     a {
       color: var(--secondary-text-color);
     }
@@ -117,8 +115,13 @@ Left Nav + List + Detail
       background-color: var(--google-grey-100);
       --paper-toolbar-height: 96px;
     }
+
+    .small {
+      font-size: 80%;
+    }
     </style>
     <firebase-collection id="datasrc" location="https://la-panacee.firebaseio.com/artworks" data="{{artworks}}"></firebase-collection>
+    <google-client-loader id="exhib" name="calendar" version="v3" on-google-api-load="_apiloaded"></google-client-loader>
     <paper-drawer-panel id="mainDrawerPanel" class="main-drawer-panel" main responsive-width="600px" drawer-width="[[_computeListWidth(_isMobile)]]" drawer-toggle-attribute="list-toggle" narrow="{{_isMobile}}">
       <paper-header-panel class="list-panel" drawer>
         <!-- List Toolbar -->
@@ -146,20 +149,31 @@ Left Nav + List + Detail
       <paper-header-panel class="content-panel" main>
         <div class="content">
           <div class="container">
-            <div class="headline flexchild">
-              <iron-icon icon="date-range"></iron-icon> <a on-click="_event"> [[selected.event]]</a></div>
-            <div class="container paper-font-title">
-              <template is="dom-repeat" items="[[selected.artists]]" as="item">
-                <a on-click="_author" artist={{item}}>
-                  <iron-icon icon="perm-identity"></iron-icon><span>{{item}}</span></a>&nbsp;
-              </template>
+            <div class="flexchild">
+              <span style="font-size:120%;">[[selected.event]]</span>
+              <a on-click="_event">
+                <iron-icon icon="filter-list"></iron-icon>
+              </a>
+            </div>
+            <div>
+              <iron-icon icon="date-range"></iron-icon> <em>Exposition du {{_dateformat(eventcal.start.date)}} au {{_dateformat(eventcal.end.date)}}</em>
             </div>
           </div>
+          <div class="small" style="text-align:justify;" inner-h-t-m-l={{nl2br(eventcal.description)}}>
+          </div>
+          <hr/>
           <div class="container">
             <div class="paper-font-display1 flexchild">
               <b style="font-size:200%;">[[selected.title]]</b></div>
             <div class="paper-font-display1">[[selected.date]]</div>
           </div>
+          <div>
+            <template is="dom-repeat" items="[[selected.artists]]" as="item">
+              <a on-click="_author" artist={{item}}>
+                <iron-icon icon="perm-identity"></iron-icon><span>{{item}}</span></a><br/>;
+            </template>
+          </div>
+          <br/>
           <div class="container paper-font-menu">[[selected.description]]</div>
           <template is="dom-repeat" items="[[selected.productions]]" as="item">
             <div class="paper-font-caption">{{item}}</div>
@@ -186,6 +200,7 @@ Left Nav + List + Detail
         artworks: Object,
         backup: Object,
         events: Object,
+        eventcal: Object,
         searchTerm: String,
         selected: {
           type: Object
@@ -193,27 +208,30 @@ Left Nav + List + Detail
       };
     }
     ready() {
-      function artworkAdded(aT) {
-        var that = aT;
-        return {
-          update: function() {
-            that.backup = that.artworks.slice();
-            document.querySelector('iron-list').fire('iron-resize');
-          }
-        };
-      }
-      var aAA = new artworkAdded(this);
-      this.$.datasrc.query.on('child_added', aAA.update);
+      this.$.datasrc.query.on('child_added', () => {
+        this.backup = this.artworks.slice();
+        document.querySelector('iron-list').fire('iron-resize');
+      });
+    }
+    _apiloaded() {
+      let req = this.$.exhib.api.events.list({
+        calendarId: 'bq6t066j176ae3h5o6pjg0mut0@group.calendar.google.com',
+        key: 'AIzaSyCpwrK8OpScZX5pangVxOfsnGcGXguVCKs',
+        singleEvents: true
+      });
+      req.execute(res => {
+        this.events = res.result.items;
+      });
     }
     _filter() {
       if (1 < this.searchTerm.length) {
-        var searchTerm = this.searchTerm.toUpperCase();
+        let searchTerm = this.searchTerm.toUpperCase();
 
         this.backup = this.artworks.filter((value) => {
-          var isTitle = -1 < value.title.toUpperCase().indexOf(searchTerm);
-          var isEvent = -1 < value.event.toUpperCase().indexOf(searchTerm);
-          var isAuthor = false;
-          for (var i = value.artists.length - 1; i >= 0; i--) {
+          let isTitle = -1 < value.title.toUpperCase().indexOf(searchTerm);
+          let isEvent = -1 < value.event.toUpperCase().indexOf(searchTerm);
+          let isAuthor = false;
+          for (let i = value.artists.length - 1; i >= 0; i--) {
             isAuthor = isAuthor || (-1 < value.artists[i].toUpperCase().indexOf(searchTerm));
           }
           return isTitle || isEvent || isAuthor;
@@ -226,6 +244,14 @@ Left Nav + List + Detail
     }
     _show(e) {
       this.selected = e.model.artwork;
+      let eventIdx = _.findKey(this.events, {
+        summary: this.selected.event
+      });
+      this.eventcal = this.events[eventIdx];
+      this.eventcal.start["str"] = moment(this.eventcal.start.date).format('LL');
+    }
+    _dateformat(d) {
+      return moment(d).format('LL');
     }
     _author(e) {
       this.searchTerm = e.model.item;
@@ -240,7 +266,7 @@ Left Nav + List + Detail
       return isMobile ? '100%' : '33%';
     }
     nl2br(txt) {
-      return txt;//.replace(/(?:\r\n|\r|\n)/g, '<br />');
+      return txt.replace(/(?:\r\n|\r|\n)/g, '<br />');
     }
     _listTap() {
       this.$.mainDrawerPanel.closeDrawer();
