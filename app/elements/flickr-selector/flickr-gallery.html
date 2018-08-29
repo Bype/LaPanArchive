@@ -10,6 +10,10 @@
       @apply(--layout-horizontal);
       @apply(--layout-wrap);
     }
+    a{
+      color:white;
+      font-size: 120%;
+    }
 
     .img {
       padding-right: 4px;
@@ -48,13 +52,14 @@
     </style>
     <paper-dialog id="lightbox" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop>
       <center>
-        <flickr-image class="lb" flickrid="{{selected}}" size=8 on-imgloaded="_imgloaded"></flickr-image>
+        <flickr-image class="lb" flickrid="{{selected}}" size=7 on-imgloaded="_imgloaded"></flickr-image>
       </center>
       <iron-icon class="overlay-left" icon="image:navigate-before" on-click="_previous"></iron-icon>
       <iron-icon class="overlay-right" icon="image:navigate-next" on-click="_next"></iron-icon>
       <iron-ajax auto url="https://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=ca7454a3b5cac81a424bbd750f75131b&photo_id={{selected}}&format=json&nojsoncallback=1" handle-as="json" last-response="{{imageinfo}}"></iron-ajax>
-      <h3>{{imageinfo.photo.title._content}}</h3>
-      <p>{{imageinfo.photo.description._content}}</p>
+      <p><a href="https://www.flickr.com/photos/137685274@N02/{{selected}}" target="_blank">{{imageinfo.photo.title._content}}</a><br/>
+      {{imageinfo.photo.description._content}}</p>
+
     </paper-dialog>
     <div class="imageplace">
       <template is="dom-repeat" items="{{imgs}}" as="item">

@@ -17,6 +17,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/firebase-element/firebase-collection.html">
 <link rel="import" href="../../bower_components/iron-list/iron-list.html">
@@ -154,6 +155,7 @@ Left Nav + List + Detail
               <a on-click="_event">
                 <iron-icon icon="filter-list"></iron-icon>
               </a>
+              <paper-tooltip>Afficher uniquement les oeuvres de cette exposition</paper-tooltip>
             </div>
             <div>
               <iron-icon icon="date-range"></iron-icon> <em>Exposition du {{_dateformat(eventcal.start.date)}} au {{_dateformat(eventcal.end.date)}}</em>
@@ -170,7 +172,13 @@ Left Nav + List + Detail
           <div>
             <template is="dom-repeat" items="[[selected.artists]]" as="item">
               <a on-click="_author" artist={{item}}>
-                <iron-icon icon="perm-identity"></iron-icon><span>{{item}}</span></a><br/>;
+                <iron-icon icon="perm-identity" id="artistfilter"></iron-icon>
+              </a>
+               <span>{{item}}</span>
+              <a target='_blank' href="http://google.com/#q={{item}}">
+                <iron-icon icon="search" id="artistsearch"></iron-icon>
+              </a>
+              <br/>
             </template>
           </div>
           <br/>
